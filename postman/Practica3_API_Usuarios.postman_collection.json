@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "Práctica 3 - API REST Usuarios",
+    "description": "Pruebas CRUD de la API Node.js + Express + PostgreSQL",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. POST Registrar usuario (201)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Devuelve el usuario sin contraseña', () => {",
+              "  pm.expect(json.data).to.have.property('id');",
+              "  pm.expect(json.data).to.not.have.property('password_hash');",
+              "});",
+              "pm.collectionVariables.set('id', json.data.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/usuarios",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Jostin Chalán\",\n  \"correo\": \"jostin.prueba@correo.com\",\n  \"telefono\": \"0991234567\",\n  \"edad\": 22,\n  \"ciudad\": \"Quito\",\n  \"password\": \"Clave1234\",\n  \"confirmPassword\": \"Clave1234\",\n  \"terminos\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "2. POST Registrar con correo duplicado (409)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/usuarios",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Otro Usuario\",\n  \"correo\": \"jostin.prueba@correo.com\",\n  \"telefono\": \"0987654321\",\n  \"edad\": 30,\n  \"ciudad\": \"Cuenca\",\n  \"password\": \"Clave1234\",\n  \"confirmPassword\": \"Clave1234\",\n  \"terminos\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "3. POST Registrar con datos inválidos (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));", "pm.test('Incluye detalle de errores', () => pm.expect(pm.response.json()).to.have.property('errores'));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/usuarios",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"J1\",\n  \"correo\": \"correo-malo\",\n  \"telefono\": \"123\",\n  \"edad\": 15,\n  \"ciudad\": \"Lima\",\n  \"password\": \"corta\",\n  \"confirmPassword\": \"otra\",\n  \"terminos\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "4. GET Consultar todos (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 200 OK', () => pm.response.to.have.status(200));", "pm.test('data es un arreglo', () => pm.expect(pm.response.json().data).to.be.an('array'));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/usuarios" }
+    },
+    {
+      "name": "5. GET Consultar por ID (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 200 OK', () => pm.response.to.have.status(200));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/usuarios/{{id}}" }
+    },
+    {
+      "name": "6. GET Consultar ID inexistente (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/usuarios/99999" }
+    },
+    {
+      "name": "7. GET Consultar ID inválido (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/usuarios/abc" }
+    },
+    {
+      "name": "8. PUT Actualizar usuario (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 200 OK', () => pm.response.to.have.status(200));", "pm.test('Ciudad actualizada', () => pm.expect(pm.response.json().data.ciudad).to.eql('Guayaquil'));"] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/usuarios/{{id}}",
+        "body": { "mode": "raw", "raw": "{\n  \"ciudad\": \"Guayaquil\",\n  \"edad\": 23\n}" }
+      }
+    },
+    {
+      "name": "9. PUT Actualizar con datos inválidos (400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));"] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/usuarios/{{id}}",
+        "body": { "mode": "raw", "raw": "{\n  \"telefono\": \"12ab\"\n}" }
+      }
+    },
+    {
+      "name": "10. DELETE Eliminar usuario (200)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 200 OK', () => pm.response.to.have.status(200));"] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/usuarios/{{id}}" }
+    },
+    {
+      "name": "11. DELETE Eliminar usuario ya eliminado (404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));"] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/usuarios/{{id}}" }
+    }
+  ]
+}

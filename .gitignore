@@ -1,0 +1,8 @@
+node_modules/
+.env
+*.log
+
+# Archivos locales de sincronización de la app de Postman
+.postman/
+postman/collections/
+postman/globals/
